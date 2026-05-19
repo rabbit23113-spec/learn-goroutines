@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"syscall"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,7 +15,7 @@ import (
 var reader = bufio.NewReader(os.Stdin)
 
 func main() {
-
+	chooseAction()
 }
 
 func readFile(filename string) ([]User, error) {
@@ -68,6 +70,31 @@ func createUser() error {
 		errorHandler(err)
 	}
 	return nil
+}
+
+func chooseAction() {
+	var choice int = 0
+	for choice == 0 {
+		fmt.Println("__ Action __")
+		fmt.Println("__ 1) Create a new account __")
+		fmt.Println("__ 2) Exit __")
+		action, err := reader.ReadString('\n')
+		if err != nil {
+			errorHandler(err)
+		}
+		action = strings.TrimSpace(action)
+		choice, err = strconv.Atoi(action)
+		if err != nil {
+			errorHandler(err)
+		}
+		switch choice {
+		case 1:
+			createUser()
+			choice = 0
+		case 2:
+			syscall.Exit(0)
+		}
+	}
 }
 
 func errorHandler(err error) error {
