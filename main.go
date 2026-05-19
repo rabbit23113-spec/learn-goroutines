@@ -72,29 +72,63 @@ func createUser() error {
 	return nil
 }
 
-func chooseAction() {
+func chooseAction() error {
 	var choice int = 0
 	for choice == 0 {
 		fmt.Println("__ Action __")
 		fmt.Println("__ 1) Create a new account __")
-		fmt.Println("__ 2) Exit __")
+		fmt.Println("__ 2) Sign in __")
+		fmt.Println("__ 3) Exit __")
 		action, err := reader.ReadString('\n')
 		if err != nil {
-			errorHandler(err)
+			return errorHandler(err)
 		}
 		action = strings.TrimSpace(action)
 		choice, err = strconv.Atoi(action)
 		if err != nil {
-			errorHandler(err)
+			return errorHandler(err)
 		}
 		switch choice {
 		case 1:
 			createUser()
 			choice = 0
 		case 2:
+			auth()
+		case 3:
 			syscall.Exit(0)
 		}
 	}
+	return nil
+}
+
+func auth() error {
+	fmt.Println("__ Username __")
+	username, err := reader.ReadString('\n')
+	if err != nil {
+		return errorHandler(err)
+	}
+	username = strings.TrimSpace(username)
+	fmt.Println("__ Password __")
+	password, err := reader.ReadString('\n')
+	if err != nil {
+		return errorHandler(err)
+	}
+	password = strings.TrimSpace(password)
+	response, err := readFile("users.json")
+	if err != nil {
+		return errorHandler(err)
+	}
+	for i := range response {
+		if response[i].Username == username {
+			err := bcrypt.CompareHashAndPassword([]byte(response[i].Password), []byte(password))
+			if err != nil {
+				return errorHandler(err)
+			}
+			fmt.Println("Success")
+			return nil
+		}
+	}
+	return nil
 }
 
 func errorHandler(err error) error {
