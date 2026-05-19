@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,7 +33,7 @@ func readFile(filename string) ([]User, error) {
 func writeFile(filename string, content any) error {
 	bytes, err := json.Marshal(content)
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
 	os.WriteFile(filename, bytes, 0644)
 	return nil
@@ -45,29 +44,28 @@ func createUser() error {
 	fmt.Println("__ Username __")
 	username, err := reader.ReadString('\n')
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
 	username = strings.TrimSpace(username)
 	fmt.Println("__ Password __")
 	password, err := reader.ReadString('\n')
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
 	password = strings.TrimSpace(password)
 	response, err := readFile("users.json")
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
-	err = writeFile("users.json", response)
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
 	user := User{Username: username, Password: string(hash)}
 	users = append(response, user)
 	err = writeFile("users.json", users)
 	if err != nil {
-		errorHandler(err)
+		return errorHandler(err)
 	}
 	return nil
 }
@@ -95,7 +93,7 @@ func chooseAction() error {
 		case 2:
 			auth()
 		case 3:
-			syscall.Exit(0)
+			os.Exit(0)
 		}
 	}
 	return nil
